@@ -3,17 +3,19 @@ from scraper import scrape_mercadolibre
 
 st.title("🔍 Comparador de Precios - MercadoLibre")
 
-query = st.text_input("¿Qué producto querés buscar?", "")
-
-if query:
-    with st.spinner("Buscando productos..."):
-        resultados = scrape_mercadolibre(query)
-    
-    if resultados:
-        st.success(f"{len(resultados)} resultados encontrados")
-        for r in resultados:
-            st.write(f"### [{r['titulo']}]({r['url']})")
-            st.write(f"💲 Precio: {r['precio']}")
-            st.markdown("---")
+query = st.text_input("Buscar producto:")
+if st.button("Buscar"):
+    if query:
+        with st.spinner("Buscando..."):
+            results = scrape_mercadolibre(query)
+        if results:
+            for r in results:
+                st.markdown(f"### {r['title']}")
+                st.markdown(f"💲Precio: ${r['price']}")
+                st.markdown(f"[Ver en MercadoLibre]({r['url']})")
+                st.markdown("---")
+        else:
+            st.error("No se encontraron resultados o hubo un error.")
     else:
-        st.warning("No se encontraron resultados o hubo un error.")
+        st.warning("Por favor escribí un producto.")
+
