@@ -1,43 +1,45 @@
 import requests
 from bs4 import BeautifulSoup
+import urllib.parse
 
 def scrape_mercadolibre(query):
     try:
-        # Convertir el texto de búsqueda en formato URL amigable
-        query = query.replace(' ', '+')
-        url = f"https://listado.mercadolibre.com.ar/{query}"
+        # Convertimos la consulta en formato de URL
+        query_encoded = urllib.parse.quote(query)
+        url = f"https://www.mercadolibre.com.ar/jm/search?as_word={query_encoded}"
 
         headers = {
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/113.0.0.0 Safari/537.36"
+                "Chrome/122.0.0.0 Safari/537.36"
             )
         }
 
         response = requests.get(url, headers=headers)
         if response.status_code != 200:
+            print(f"Error HTTP {response.status_code}")
             return []
 
-        soup = BeautifulSoup(response.text, 'html.parser')
-        items = soup.select('li.ui-search-layout__item')
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        items = soup.select("li.ui-search-layout__item")
 
         results = []
-        for item in items[:10]:  # Solo los primeros 10
-            title_elem = item.select_one('h2.ui-search-item__title')
-            price_elem = item.select_one('span.price-tag-fraction')
-            link_elem = item.select_one('a.ui-search-link')
+        for item in items[:10]:
+            title = item.select_one("h2.ui-search-item__title")
+            price_integer = item.select_one("span.price-tag-fraction")
+            link = item.select_one("a.ui-search-link")
 
-            if title_elem and price_elem and link_elem:
+            if title and price_integer and link:
                 results.append({
-                    "title": title_elem.text.strip(),
-                    "price": price_elem.text.strip(),
-                    "url": link_elem['href']
+                    "title": title.get_text(strip=True),
+                    "price": price_integer.get_text(strip=True),
+                    "url": link["href"]
                 })
 
         return results
 
     except Exception as e:
-        print(f"Error durante el scraping: {e}")
+        print("Error durante el scraping:", e)
         return []
-
