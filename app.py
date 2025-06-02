@@ -1,18 +1,27 @@
 import streamlit as st
-from scraper import scrape_mercadolibre
+from scraper import scrape_page
 
-st.title("🔎 Comparador de Precios - MercadoLibre")
+st.title("🌐 Scraper Universal de Productos")
 
-query = st.text_input("Buscar producto en MercadoLibre Argentina")
+url = st.text_input("🔗 Ingresá la URL del producto o página de tienda")
+query = st.text_input("🛒 ¿Qué producto estás buscando? (opcional)")
 
-if query:
-    st.write("Buscando productos...")
-    results = scrape_mercadolibre(query)
-
-    if results and "error" not in results[0]:
-        for product in results:
-            st.subheader(product["title"])
-            st.write(f"💲 Precio: {product['price']}")
-            st.markdown(f"[Ver en MercadoLibre]({product['url']})")
+if st.button("Buscar producto"):
+    if not url:
+        st.warning("Por favor ingresá una URL válida.")
     else:
-        st.warning(results[0]["error"])
+        with st.spinner("Analizando la página..."):
+            result = scrape_page(url)
+        
+        if result["success"]:
+            st.subheader("📄 Título de la página")
+            st.write(result["title"])
+
+            st.subheader("💵 Posibles precios encontrados")
+            if result["prices"]:
+                for p in result["prices"]:
+                    st.write(f"• {p}")
+            else:
+                st.warning("No se encontraron precios en el contenido.")
+        else:
+            st.error(f"Error al analizar la página: {result['error']}")
