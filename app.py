@@ -1,24 +1,18 @@
 import streamlit as st
 from scraper import scrape_mercadolibre
 
-st.set_page_config(page_title="Comparador de precios ML", layout="centered")
-st.title("🛒 Comparador de Precios - MercadoLibre 🇦🇷")
+st.title("🔎 Comparador de Precios - MercadoLibre")
 
-query = st.text_input("¿Qué producto querés buscar?", "")
+query = st.text_input("Buscar producto en MercadoLibre Argentina")
 
-if st.button("Buscar"):
-    if query.strip() == "":
-        st.warning("Por favor, escribí un producto.")
+if query:
+    st.write("Buscando productos...")
+    results = scrape_mercadolibre(query)
+
+    if results and "error" not in results[0]:
+        for product in results:
+            st.subheader(product["title"])
+            st.write(f"💲 Precio: {product['price']}")
+            st.markdown(f"[Ver en MercadoLibre]({product['url']})")
     else:
-        with st.spinner("Buscando productos en MercadoLibre..."):
-            resultados = scrape_mercadolibre(query)
-        if resultados:
-            for r in resultados:
-                st.subheader(r["title"])
-                st.write(f"💵 Precio: ${r['price']}")
-                st.markdown(f"[🔗 Ver producto]({r['url']})")
-                st.markdown("---")
-        else:
-            st.error("No se encontraron resultados. Verificá el término de búsqueda o probá más tarde.")
-
-
+        st.warning(results[0]["error"])
